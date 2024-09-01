@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenAISemanticKernelPoc", "OpenAISemanticKernelPoc\OpenAISemanticKernelPoc.csproj", "{7346A06A-BB00-4787-9AE7-02242EC2A2CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7346A06A-BB00-4787-9AE7-02242EC2A2CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7346A06A-BB00-4787-9AE7-02242EC2A2CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7346A06A-BB00-4787-9AE7-02242EC2A2CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7346A06A-BB00-4787-9AE7-02242EC2A2CB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AA5A8BEA-41FF-4491-8328-97D502E39BE4}
+	EndGlobalSection
+EndGlobal
