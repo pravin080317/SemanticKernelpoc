@@ -17,10 +17,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Graph" Version="5.56.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.1.0" />
     <PackageReference Include="Microsoft.Identity.Web.GraphServiceClient" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.1.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.17.2" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.17.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
   </ItemGroup>
 
 </Project>

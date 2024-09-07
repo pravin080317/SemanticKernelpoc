@@ -10,12 +10,38 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
 using OpenAISemanticKernelPoc.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Graph.Models.ExternalConnectors;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Identity.Web.UI;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Sign-in users with the Microsoft identity platform
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+.AddMicrosoftIdentityWebApp(options => builder.Configuration.Bind("AzureAd", options));
+
+
+// Add authorization with role-based policies
+builder.Services.AddAuthorizationBuilder()
+                                                 // Add authorization with role-based policies
+                                                 .AddPolicy("RequireAdministratorRole", policy => policy.RequireRole("Administrator"))
+                                                 // Add authorization with role-based policies
+                                                 .AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+
+builder.Services.AddRazorPages().AddMicrosoftIdentityUI();
+
+//In the Azure portal, the redirect URIs that you register on the Authentication page for your application need to match these URLs.
+//    For the two preceding configuration files, they would be https://localhost:44359/signin-oidc.
+////The reason is that applicationUrl is http://localhost:16011, but sslPort is specified (44359). CallbackPath is /signin-oidc, as defined in appsettings.json.
+//In the same way, the sign-out URI would be set to https://localhost:44359/signout-oidc. In authentication section - under web add signin and in frontend signout add signout.
+//Under Implicit grant and hybrid flows, select ID tokens.
 
 // Add session services to the container
 builder.Services.AddDistributedMemoryCache();
@@ -77,6 +103,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

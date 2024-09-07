@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenAISemanticKernelPoc.Models;
 using OpenAISemanticKernelPoc.Services;
 
 namespace OpenAISemanticKernelPoc.Controllers
 {
+  
     public class StudentsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -15,6 +17,7 @@ namespace OpenAISemanticKernelPoc.Controllers
         }
 
         // GET: Students
+        [Authorize(Roles = "Task.Administrator")]
         public async Task<IActionResult> Index()
         {
             var students = await _context.Students.ToListAsync();
