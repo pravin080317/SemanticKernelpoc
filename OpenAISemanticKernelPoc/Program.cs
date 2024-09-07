@@ -9,14 +9,24 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
 using OpenAISemanticKernelPoc.Services;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Add semantic kernel services 
+// Add session services to the container
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
+// Add semantic kernel services 
 // Load configuration from environment variables or appsettings
 var useOpenAI = builder.Configuration.GetValue<bool>("UseOpenAI", true);  // Default to true if not specified
 var useManagedIdentity = builder.Configuration.GetValue<bool>("UseManagedIdentity", false);  // Default to false if not specified
@@ -44,6 +54,14 @@ if (useOpenAI)
 //    builder.Services.AddSingleton<ITextEmbeddingGenerationService>(new OllamaTextEmbeddingGenerationService("all-minilm", new Uri(endpoint)));
 //}
 
+// Configure DbContext with SQL Server
+//We use builder.Services.AddDbContext<ApplicationDbContext>() to register the ApplicationDbContext with the dependency injection system.
+//UseSqlServer specifies that SQL Server (in this case, Azure SQL Database) is being used as the database provider.
+//The connection string is retrieved from the application configuration.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
+
+
 
 var app = builder.Build();
 
@@ -61,6 +79,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+// Use session
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

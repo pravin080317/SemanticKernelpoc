@@ -1,4 +1,5 @@
-﻿@model string
+﻿@model OpenAISemanticKernelPoc.Models.ChatViewModel
+
 @{
     ViewBag.Title = "Chat with AI";
 }
@@ -38,17 +39,17 @@
             display: flex;
         }
 
-        .chat-message.user {
-            justify-content: flex-end;
-        }
+            .chat-message.user {
+                justify-content: flex-end;
+            }
 
-        .chat-message.user .message-content {
-            background-color: #dcf8c6;
-        }
+                .chat-message.user .message-content {
+                    background-color: #dcf8c6;
+                }
 
-        .chat-message.assistant {
-            justify-content: flex-start;
-        }
+            .chat-message.assistant {
+                justify-content: flex-start;
+            }
 
         .message-content {
             max-width: 70%;
@@ -81,23 +82,26 @@
             cursor: pointer;
         }
 
-        .send-button:disabled {
-            background-color: #aaa;
-        }
+            .send-button:disabled {
+                background-color: #aaa;
+            }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-box" id="chatBox">
-            @if (!string.IsNullOrEmpty(ViewBag.Response))
+            @if (Model.ChatHistory != null)
             {
-                <div class="chat-message assistant">
-                    <div class="message-content">@ViewBag.Response</div>
-                </div>
+                foreach (var message in Model.ChatHistory)
+                {
+                    <div class="chat-message @(message.Role == "user" ? "user" : "assistant")">
+                        <div class="message-content">@message.Content</div>
+                    </div>
+                }
             }
         </div>
         <form asp-action="Chat" method="post" class="chat-input-container">
-            <input type="text" id="userInput" name="userInput" class="chat-input" placeholder="Type your message..." required />
+            <input type="text" id="userInput" name="UserInput" class="chat-input" placeholder="Type your message..." required />
             <button type="submit" class="send-button">Send</button>
         </form>
     </div>
