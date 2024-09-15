@@ -16,4 +16,6 @@ namespace OpenAISemanticKernelPoc.Models
         [Column("StudentAge")] // Map Age property to StudentAge column
         public int Age { get; set; }
     }
+
+
 }
