@@ -6,7 +6,7 @@ using OpenAISemanticKernelPoc.Services;
 
 namespace OpenAISemanticKernelPoc.Services
 {
-    public class ApplicationDbContext: DbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -15,6 +15,14 @@ namespace OpenAISemanticKernelPoc.Services
 
         // DbSet represents a table in the database
         public DbSet<Student> Students { get; set; }
+
+        public DbSet<export> exports { get; set; }
+
+        public DbSet<product> products { get; set; }
+
+        public DbSet<Variety> Varietys { get; set; }
+
+
     }
 }
 
