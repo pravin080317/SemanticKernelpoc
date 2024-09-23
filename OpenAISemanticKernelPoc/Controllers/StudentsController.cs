@@ -25,6 +25,7 @@ namespace OpenAISemanticKernelPoc.Controllers
         }
 
         // GET: Students/Create
+        //get1
         public IActionResult Create()
         {
             return View();
