@@ -52,7 +52,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Add semantic kernel services 
+// Add semantic kernel service
 // Load configuration from environment variables or appsettings
 var useOpenAI = builder.Configuration.GetValue<bool>("UseOpenAI", true);  // Default to true if not specified
 var useManagedIdentity = builder.Configuration.GetValue<bool>("UseManagedIdentity", false);  // Default to false if not specified
