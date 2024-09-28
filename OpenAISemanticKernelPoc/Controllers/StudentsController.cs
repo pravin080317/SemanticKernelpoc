@@ -165,7 +165,7 @@ namespace OpenAISemanticKernelPoc.Controllers
         }
 
         // Helper method to handle the IsValidCommodityImportRule logic
-        private bool IsValidCommodityImportRule(CommodityImportRule cr, string certificateType)
+        private static bool IsValidCommodityImportRule(CommodityImportRule cr, string certificateType)
         {
             return cr.IsActive == 1
                 && cr.Regulator == certificateType
