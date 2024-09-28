@@ -14,6 +14,7 @@ namespace OpenAISemanticKernelPoc.Services
         }
 
         // DbSet represents a table in the database
+        //dbset
         public DbSet<Student> Students { get; set; }
 
         public DbSet<export> exports { get; set; }
@@ -21,6 +22,37 @@ namespace OpenAISemanticKernelPoc.Services
         public DbSet<product> products { get; set; }
 
         public DbSet<Variety> Varietys { get; set; }
+
+        public DbSet<CommodityImportRule> CommodityImportRules { get; set; }
+        public DbSet<CommodityImportRuleCountry> CommodityImportRuleCountries { get; set; }
+        public DbSet<CommodityImportRuleException> CommodityImportRuleExceptions { get; set; }
+        public DbSet<CommodityImportRuleBorderControlPost> CommodityImportRuleBorderControlPosts { get; set; }
+        public DbSet<CommodityImportRulePurpose> CommodityImportRulePurposes { get; set; }
+        public DbSet<CommodityImportPurpose> CommodityImportPurposes { get; set; }
+        public DbSet<CommodityImportRuleCertifiedUse> CommodityImportRuleCertifiedUses { get; set; }
+        public DbSet<CommodityImportCertifiedUse> CommodityImportCertifiedUses { get; set; }
+        public DbSet<CountryGroupsMapping> CountryGroupsMappings { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Define relationships and keys if needed
+            modelBuilder.Entity<CommodityImportRuleCountry>()
+                .HasKey(c => new { c.RuleId, c.CountryOrGroupId });
+
+            modelBuilder.Entity<CommodityImportRuleException>()
+                .HasKey(e => new { e.RuleId, e.CountryOrGroupId });
+
+            modelBuilder.Entity<CommodityImportRulePurpose>()
+                .HasKey(p => new { p.RuleId, p.PurposeId });
+
+            modelBuilder.Entity<CommodityImportRuleCertifiedUse>()
+                .HasKey(cu => new { cu.RuleId, cu.CertifiedUseId });
+
+            modelBuilder.Entity<CountryGroupsMapping>()
+                .HasKey(cg => new { cg.CountryGroupsId, cg.CountryId });
+
+            // Further configuration if necessary
+        }
 
 
     }
