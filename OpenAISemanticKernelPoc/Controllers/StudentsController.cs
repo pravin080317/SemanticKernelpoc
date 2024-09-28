@@ -27,85 +27,91 @@ namespace OpenAISemanticKernelPoc.Controllers
 
         public IActionResult GetActionDetails(string certificateType)
         {
-            // Assuming we have Entity Framework models for the tables
-            var results = from cr in _context.CommodityImportRules
-                        where cr.IsActive == 1
-                                          && cr.Regulator == certificateType
-                                          && cr.VarietyId == "0"
-                                          && cr.Eppo == ""
-                                          && (
-                                              cr.Permanent == 1 ||
-                                              (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate == null) ||
-                                              (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate >= DateTime.UtcNow) ||
-                                              (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate == null) ||
-                                              (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate >= DateTime.UtcNow)
-                                          )
-                        // LEFT JOIN for Border Control Posts
-                        join crbcp in _context.CommodityImportRuleBorderControlPosts
-                            on cr.Id equals crbcp.RuleId into borderControlPostGroup
-                        from borderControlPost in borderControlPostGroup.DefaultIfEmpty()
+            if (ModelState.IsValid)
+            {
+                // Assuming we have Entity Framework models for the tables
+                var results = from cr in _context.CommodityImportRules
+                              where cr.IsActive == 1
+                                                && cr.Regulator == certificateType
+                                                && cr.VarietyId == "0"
+                                                && cr.Eppo == ""
+                                                && (
+                                                    cr.Permanent == 1 ||
+                                                    (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate == null) ||
+                                                    (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate >= DateTime.UtcNow) ||
+                                                    (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate == null) ||
+                                                    (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate >= DateTime.UtcNow)
+                                                )
+                              // LEFT JOIN for Border Control Posts
+                              join crbcp in _context.CommodityImportRuleBorderControlPosts
+                                  on cr.Id equals crbcp.RuleId into borderControlPostGroup
+                              from borderControlPost in borderControlPostGroup.DefaultIfEmpty()
 
-                            // LEFT JOIN for Purpose
-                        join crp in _context.CommodityImportRulePurposes
-                            on cr.Id equals crp.RuleId into purposeGroup
-                        from crPurpose in purposeGroup.DefaultIfEmpty()
-                        join cp in _context.CommodityImportPurposes
-                            on crPurpose.PurposeId equals cp.Id into commodityPurposeGroup
-                        from commodityPurpose in commodityPurposeGroup.DefaultIfEmpty()
+                                  // LEFT JOIN for Purpose
+                              join crp in _context.CommodityImportRulePurposes
+                                  on cr.Id equals crp.RuleId into purposeGroup
+                              from crPurpose in purposeGroup.DefaultIfEmpty()
+                              join cp in _context.CommodityImportPurposes
+                                  on crPurpose.PurposeId equals cp.Id into commodityPurposeGroup
+                              from commodityPurpose in commodityPurposeGroup.DefaultIfEmpty()
 
-                            // LEFT JOIN for Certified Use
-                        join crcu in _context.CommodityImportRuleCertifiedUses
-                            on cr.Id equals crcu.RuleId into certifiedUseGroup
-                        from crCertifiedUse in certifiedUseGroup.DefaultIfEmpty()
-                        join ccu in _context.CommodityImportCertifiedUses
-                            on crCertifiedUse.CertifiedUseId equals ccu.Id into certifiedUseGroupFinal
-                        from certifiedUse in certifiedUseGroupFinal.DefaultIfEmpty()
+                                  // LEFT JOIN for Certified Use
+                              join crcu in _context.CommodityImportRuleCertifiedUses
+                                  on cr.Id equals crcu.RuleId into certifiedUseGroup
+                              from crCertifiedUse in certifiedUseGroup.DefaultIfEmpty()
+                              join ccu in _context.CommodityImportCertifiedUses
+                                  on crCertifiedUse.CertifiedUseId equals ccu.Id into certifiedUseGroupFinal
+                              from certifiedUse in certifiedUseGroupFinal.DefaultIfEmpty()
 
-                        select new
-                        {
-                            cr.Id,
-                            cr.CommodityId,
-                            cr.Rate,
-                            cr.Triggered,
-                            cr.Total,
-                            BorderControlPost = borderControlPost != null ? borderControlPost.BcpCode : null,
-                            Purpose = commodityPurpose != null ? commodityPurpose.Purpose : null,
-                            CertifiedUse = certifiedUse != null ? certifiedUse.CertifiedFor : null,
-                            cr.RiskCategorisation,
-                            cr.AllowMultipleInspections,
+                              select new
+                              {
+                                  cr.Id,
+                                  cr.CommodityId,
+                                  cr.Rate,
+                                  cr.Triggered,
+                                  cr.Total,
+                                  BorderControlPost = borderControlPost != null ? borderControlPost.BcpCode : null,
+                                  Purpose = commodityPurpose != null ? commodityPurpose.Purpose : null,
+                                  CertifiedUse = certifiedUse != null ? certifiedUse.CertifiedFor : null,
+                                  cr.RiskCategorisation,
+                                  cr.AllowMultipleInspections,
 
-                            // CountriesFlat: Concatenating allowed countries
-                            CountriesFlat = String.Join(",",
-                                (from crcCountry in _context.CommodityImportRuleCountries
-                                 where crcCountry.Type == 1 && crcCountry.RuleId == cr.Id
-                                 join excludedCountry in _context.CommodityImportRuleExceptions
-                                     on new { crcCountry.RuleId, crcCountry.CountryOrGroupId } equals
-                                        new { excludedCountry.RuleId, excludedCountry.CountryOrGroupId }
-                                        into excludedGroup
-                                 from excluded in excludedGroup.DefaultIfEmpty()
-                                 where excluded == null // exclude countries found in exceptions
-                                 select crcCountry.CountryOrGroupId.ToString()).Distinct()),
+                                  // CountriesFlat: Concatenating allowed countries
+                                  CountriesFlat = String.Join(",",
+                                      (from crcCountry in _context.CommodityImportRuleCountries
+                                       where crcCountry.Type == 1 && crcCountry.RuleId == cr.Id
+                                       join excludedCountry in _context.CommodityImportRuleExceptions
+                                           on new { crcCountry.RuleId, crcCountry.CountryOrGroupId } equals
+                                              new { excludedCountry.RuleId, excludedCountry.CountryOrGroupId }
+                                              into excludedGroup
+                                       from excluded in excludedGroup.DefaultIfEmpty()
+                                       where excluded == null // exclude countries found in exceptions
+                                       select crcCountry.CountryOrGroupId.ToString()).Distinct()),
 
-                            // ExcludedCountriesFlat: Concatenating excluded countries
-                            ExcludedCountriesFlat = String.Join(",",
-                                (from excludedCountry in _context.CommodityImportRuleExceptions
-                                 where excludedCountry.RuleId == cr.Id && excludedCountry.Type == 2
-                                 select excludedCountry.CountryOrGroupId.ToString()).Distinct()),
+                                  // ExcludedCountriesFlat: Concatenating excluded countries
+                                  ExcludedCountriesFlat = String.Join(",",
+                                      (from excludedCountry in _context.CommodityImportRuleExceptions
+                                       where excludedCountry.RuleId == cr.Id && excludedCountry.Type == 2
+                                       select excludedCountry.CountryOrGroupId.ToString()).Distinct()),
 
-                            // CountryGroupCountriesFlat: Concatenating countries in groups
-                            CountryGroupCountriesFlat = String.Join(",",
-                                (from crcCountryGroup in _context.CommodityImportRuleCountries
-                                 where crcCountryGroup.Type == 2 && crcCountryGroup.RuleId == cr.Id
-                                 join cgm in _context.CountryGroupsMappings
-                                     on crcCountryGroup.CountryOrGroupId equals cgm.CountryGroupsId
-                                 join excludedCountry in _context.CommodityImportRuleExceptions
-                                     on cgm.CountryId equals excludedCountry.CountryOrGroupId into excludedGroup
-                                 from excluded in excludedGroup.DefaultIfEmpty()
-                                 where excluded == null // exclude countries found in exceptions
-                                 select cgm.CountryId.ToString()).Distinct())
-                        };
+                                  // CountryGroupCountriesFlat: Concatenating countries in groups
+                                  CountryGroupCountriesFlat = String.Join(",",
+                                      (from crcCountryGroup in _context.CommodityImportRuleCountries
+                                       where crcCountryGroup.Type == 2 && crcCountryGroup.RuleId == cr.Id
+                                       join cgm in _context.CountryGroupsMappings
+                                           on crcCountryGroup.CountryOrGroupId equals cgm.CountryGroupsId
+                                       join excludedCountry in _context.CommodityImportRuleExceptions
+                                           on cgm.CountryId equals excludedCountry.CountryOrGroupId into excludedGroup
+                                       from excluded in excludedGroup.DefaultIfEmpty()
+                                       where excluded == null // exclude countries found in exceptions
+                                       select cgm.CountryId.ToString()).Distinct())
+                              };
 
-            return (IActionResult)results;
+                return (IActionResult)results;
+            }
+
+            else
+                return RedirectToAction(nameof(Index));
 
         }
 
