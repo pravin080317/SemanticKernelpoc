@@ -115,6 +115,106 @@ namespace OpenAISemanticKernelPoc.Controllers
 
         }
 
+        // Main method that fetches the data
+        public IQueryable<object> GetCommodityImportRules(string certificateType)
+        {
+            return from cr in _context.CommodityImportRules
+                   where IsValidCommodityImportRule(cr, certificateType)
+                   join crbcp in _context.CommodityImportRuleBorderControlPosts
+                       on cr.Id equals crbcp.RuleId into borderControlPostGroup
+                   from borderControlPost in borderControlPostGroup.DefaultIfEmpty()
+
+                   join crp in _context.CommodityImportRulePurposes
+                       on cr.Id equals crp.RuleId into purposeGroup
+                   from crPurpose in purposeGroup.DefaultIfEmpty()
+                   join cp in _context.CommodityImportPurposes
+                       on crPurpose.PurposeId equals cp.Id into commodityPurposeGroup
+                   from commodityPurpose in commodityPurposeGroup.DefaultIfEmpty()
+
+                   join crcu in _context.CommodityImportRuleCertifiedUses
+                       on cr.Id equals crcu.RuleId into certifiedUseGroup
+                   from crCertifiedUse in certifiedUseGroup.DefaultIfEmpty()
+                   join ccu in _context.CommodityImportCertifiedUses
+                       on crCertifiedUse.CertifiedUseId equals ccu.Id into certifiedUseGroupFinal
+                   from certifiedUse in certifiedUseGroupFinal.DefaultIfEmpty()
+
+                   select new
+                   {
+                       cr.Id,
+                       cr.CommodityId,
+                       cr.Rate,
+                       cr.Triggered,
+                       cr.Total,
+                       BorderControlPost = borderControlPost != null ? borderControlPost.BcpCode : null,
+                       Purpose = commodityPurpose != null ? commodityPurpose.Purpose : null,
+                       CertifiedUse = certifiedUse != null ? certifiedUse.CertifiedFor : null,
+                       cr.RiskCategorisation,
+                       cr.AllowMultipleInspections,
+
+                       // Helper methods for flat country lists
+                       CountriesFlat = GetAllowedCountriesFlat(cr.Id),
+                       ExcludedCountriesFlat = GetExcludedCountriesFlat(cr.Id),
+                       CountryGroupCountriesFlat = GetCountryGroupCountriesFlat(cr.Id)
+                   };
+        }
+
+        // Helper method to handle the IsValidCommodityImportRule logic
+        private bool IsValidCommodityImportRule(CommodityImportRule cr, string certificateType)
+        {
+            return cr.IsActive == 1
+                && cr.Regulator == certificateType
+                && cr.VarietyId == "0"
+                && cr.Eppo == ""
+                && (cr.Permanent == 1
+                    || (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate == null)
+                    || (cr.Permanent == 0 && cr.StartDate == null && cr.EndDate >= DateTime.UtcNow)
+                    || (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate == null)
+                    || (cr.Permanent == 0 && cr.StartDate <= DateTime.UtcNow && cr.EndDate >= DateTime.UtcNow));
+        }
+
+        // Helper method to get allowed countries
+        private string GetAllowedCountriesFlat(int ruleId)
+        {
+            var allowedCountries = (from crcCountry in _context.CommodityImportRuleCountries
+                                    where crcCountry.Type == 1 && crcCountry.RuleId == ruleId
+                                    join excludedCountry in _context.CommodityImportRuleExceptions
+                                        on new { crcCountry.RuleId, crcCountry.CountryOrGroupId } equals
+                                           new { excludedCountry.RuleId, excludedCountry.CountryOrGroupId }
+                                           into excludedGroup
+                                    from excluded in excludedGroup.DefaultIfEmpty()
+                                    where excluded == null // exclude countries found in exceptions
+                                    select crcCountry.CountryOrGroupId.ToString()).Distinct();
+
+            return String.Join(",", allowedCountries);
+        }
+
+        // Helper method to get excluded countries
+        private string GetExcludedCountriesFlat(int ruleId)
+        {
+            var excludedCountries = (from excludedCountry in _context.CommodityImportRuleExceptions
+                                     where excludedCountry.RuleId == ruleId && excludedCountry.Type == 2
+                                     select excludedCountry.CountryOrGroupId.ToString()).Distinct();
+
+            return String.Join(",", excludedCountries);
+        }
+
+        // Helper method to get countries in groups
+        private string GetCountryGroupCountriesFlat(int ruleId)
+        {
+            var countryGroupCountries = (from crcCountryGroup in _context.CommodityImportRuleCountries
+                                         where crcCountryGroup.Type == 2 && crcCountryGroup.RuleId == ruleId
+                                         join cgm in _context.CountryGroupsMappings
+                                             on crcCountryGroup.CountryOrGroupId equals cgm.CountryGroupsId
+                                         join excludedCountry in _context.CommodityImportRuleExceptions
+                                             on cgm.CountryId equals excludedCountry.CountryOrGroupId into excludedGroup
+                                         from excluded in excludedGroup.DefaultIfEmpty()
+                                         where excluded == null // exclude countries found in exceptions
+                                         select cgm.CountryId.ToString()).Distinct();
+
+            return String.Join(",", countryGroupCountries);
+        }
+
+
         // GET: Students/Create
         //get1 check
         public IActionResult Create()
