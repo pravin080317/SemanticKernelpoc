@@ -16,6 +16,7 @@ namespace OpenAISemanticKernelPoc.Services
         // DbSet represents a table in the database
         //dbset
         public DbSet<Student> Students { get; set; }
+   
 
         public DbSet<export> exports { get; set; }
 
